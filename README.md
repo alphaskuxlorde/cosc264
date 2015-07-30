@@ -11,4 +11,4 @@
 
 ## Ducks
 
-![Ducks](https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Anas_platyrhynchos_male_female_quadrat.jpg/480px-Anas_platyrhynchos_male_female_quadrat.jpg)
+![Ducks](http://i.telegraph.co.uk/multimedia/archive/01367/pducks1_1367221c.jpg)
