@@ -1,7 +1,4 @@
-"""
-Defines the packet data structure, along with routines to parse and
-serialize it.
-"""
+"""Common types and functions shared by all three programs."""
 
 from collections import namedtuple
 from enum import Enum
@@ -36,3 +33,16 @@ class Packet(namedtuple('Packet', 'type_ seqno data')):
 class PacketType(Enum):
     data = 0
     ack = 1
+
+
+MIN_PORT = 1024
+MAX_PORT = 64000
+
+
+def parse_port(s):
+    """Parse a port number from a string."""
+    port = int(s)
+    if not (MIN_PORT <= port <= MAX_PORT):
+        raise ValueError('port number must be in the range [{}, {}]'.format(
+            MIN_PORT, MAX_PORT))
+    return port

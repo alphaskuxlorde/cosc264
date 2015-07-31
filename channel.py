@@ -3,8 +3,9 @@
 import sys
 import select
 import socket
-import packet
 import random
+
+from common import Packet, parse_port
 
 
 CSIN, CSOUT, CRIN, CROUT = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
@@ -36,7 +37,7 @@ def main(argv):
             clump = nodule.recv(2**16)
             if nodule == csin:
                 try:
-                    packet.Packet.from_bytes(clump)
+                    Packet.from_bytes(clump)
                     u = random.random() < p
                     if u:
                         continue
@@ -46,7 +47,7 @@ def main(argv):
                     continue
             elif nodule == crin:
                 try:
-                    packet.Packet.from_bytes(clump)
+                    Packet.from_bytes(clump)
                     u = random.random() < p
                     if u:
                         continue
@@ -57,18 +58,11 @@ def main(argv):
 
 
 def all_ports(csin, csout, crin, crout):
-    new_csin = port_check(scin)
-    new_csout = port_check(csout)
-    new_crin = port_check(crin)
-    new_crout = port_check(crout)
+    new_csin = parse_port(scin)
+    new_csout = parse_port(csout)
+    new_crin = parse_port(crin)
+    new_crout = parse_port(crout)
     return new_csin, new_csout, new_crin, new_crout
-
-
-def port_check(p):
-    port = int(p)
-    if not 1024 <= p <= 64000:
-        raise ValueError("Port number out of range")
-    return port
 
 
 if __name__ == "__main__":

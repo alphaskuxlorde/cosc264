@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
 
 from contextlib import closing
-from packet import Packet, PacketType
 import socket
 import sys
 
-
-def parse_port(s):
-    n = int(s)
-    if not (1024 <= n <= 64000):
-        raise ValueError('invalid port number')
-    return n
+from common import Packet, PacketType, parse_port
 
 
 def loop(file_out, sock_in, sock_out):
