@@ -37,12 +37,13 @@ def main(argv):
         c_r_in = parse_port(argv[3])
         file_name = argv[4]
     except (IndexError, ValueError):
-        return 'Usage: {} R_IN R_OUT C_R_IN'.format(sys.argv[0])
+        return 'Usage: {} R_IN R_OUT C_R_IN FILE_NAME'.format(sys.argv[0])
     try:
         with open(file_name, 'xb') as file_out, \
                 closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_in, \
                 closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_out:
             sock_in.bind(('localhost', r_in))
+            sock_out.bind(('localhost', r_out))
             sock_out.connect(('localhost', c_r_in))
             loop(file_out, sock_in, sock_out)
     except IOError as e:
