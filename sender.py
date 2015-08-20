@@ -3,12 +3,41 @@
 from contextlib import closing
 import socket
 import sys
+import select
 
 from common import Packet, PacketType, parse_port
 
 
 def loop(file_in, sock_in, sock_out):
-    pass
+    next_ = 0
+    exitFlag = False
+    while not exitFlag:
+        data = file_in.read(512)
+        n = len(data)
+        if n == 0:
+            packetBuffer = Packet(PacketType.data, next_, b'')
+            exitFlag = True
+        else:
+            packetBuffer = Packet(PacketType.data, next_, data)
+        processing = True
+        while processing:
+            sock_out.send(packetBuffer)
+            ready, _, _ = select.select([sock_in], [], [], 1)
+            if not ready:
+                continue
+            rcvd = sock_in.recv(2**16)
+            try:
+                exploded = Packet.from_bytes(rcvd)
+            except ValueError:
+                continue
+            if exploded.type_ != PacketType.ack:
+                continue
+            if exploded.data:
+                continue
+            if exploded.seqno != next_:
+                continue
+            next_ = 1 - next_
+            processing = False
 
 
 def main(argv):
