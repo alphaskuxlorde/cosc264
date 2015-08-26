@@ -17,7 +17,11 @@ def loop(file_in, sock_in, sock_out):
         exit_flag = not data
         processing = True
         while processing:
-            sock_out.send(packet.to_bytes())
+            try:
+                sock_out.send(packet.to_bytes())
+            except ConnectionRefusedError:
+                print('sender: connection lost')
+                return
             ready, _, _ = select.select([sock_in], [], [], 1)
             if not ready:
                 continue

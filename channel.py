@@ -6,7 +6,7 @@ import select
 import socket
 import random
 
-from common import parse_port
+from common import Packet, parse_port
 
 
 def loop(sender_in, sender_out, receiver_in, receiver_out, p_rate):
@@ -17,9 +17,21 @@ def loop(sender_in, sender_out, receiver_in, receiver_out, p_rate):
             if random.random() < p_rate:
                 continue
             elif sock == sender_in:
-                receiver_out.send(raw_packet)
+                try:
+                    receiver_out.send(raw_packet)
+                except ConnectionRefusedError:
+                    print('channel: lost connection to receiver')
+                    return
+                else:
+                    print('sender->receiver:', Packet.from_bytes(raw_packet))
             elif sock == receiver_in:
-                sender_out.send(raw_packet)
+                try:
+                    sender_out.send(raw_packet)
+                except ConnectionRefusedError:
+                    print('channel: lost connection to sender')
+                    return
+                else:
+                    print('receiver->sender:', Packet.from_bytes(raw_packet))
 
 
 def main(argv):
