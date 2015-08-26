@@ -6,65 +6,41 @@ import select
 import socket
 import random
 
-from common import Packet, parse_port
+from common import parse_port
 
 
-CSIN, CSOUT, CRIN, CROUT = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
-SIN = int(sys.argv[5])
-RIN = int(sys.argv[6])
-P_RATE = float(sys.argv[7])
+def loop(sender_in, sender_out, receiver_in, receiver_out, p_rate):
+    while True:
+        ready, _, _ = select.select([sender_in, receiver_in], [], [])
+        for sock in ready:
+            raw_packet = sock.recv(2**16)
+            if random.random() < p_rate:
+                continue
+            elif sock == sender_in:
+                receiver_out.send(raw_packet)
+            elif sock == receiver_in:
+                sender_out.send(raw_packet)
 
 
 def main(argv):
-    csin_n, csout_n, crin_n, crout_n = all_ports(CSIN, CSOUT, CRIN, CROUT)
-    sin, rin = SIN, RIN
-    if len({csin_n, csout_n, crin_n, crout_n, sin, rin}) != 6:
-        raise ValueError("Port numbers must all be distinct")
-    # This could be moved out of main(), checking the argvs instead.
-    p = P_RATE
-    csin = socket.socket(type=socket.SOCK_DGRAM)
-    csin.bind(('localhost', csin_n))
-    csout = socket.socket(type=socket.SOCK_DGRAM)
-    csout.bind(('localhost', csout_n))
-    crin = socket.socket(type=socket.SOCK_DGRAM)
-    crin.bind(('localhost', crin_n))
-    crout = socket.socket(type=socket.SOCK_DGRAM)
-    crout.bind(('localhost', crout_n))
-    csout.connect(('localhost', sin))
-    crout.connect(('localhost', rin))
-    while True:
-        ready, _, _ = select.select([csin, crin], [], [])
-        for nodule in ready:
-            clump = nodule.recv(2**16)
-            if nodule == csin:
-                try:
-                    Packet.from_bytes(clump)
-                    u = random.random() < p
-                    if u:
-                        continue
-                    else:
-                        crout.send(clump)
-                except ValueError:
-                    continue
-            elif nodule == crin:
-                try:
-                    Packet.from_bytes(clump)
-                    u = random.random() < p
-                    if u:
-                        continue
-                    else:
-                        csout.send(clump)
-                except ValueError:
-                    continue
-
-
-def all_ports(csin, csout, crin, crout):
-    new_csin = parse_port(csin)
-    new_csout = parse_port(csout)
-    new_crin = parse_port(crin)
-    new_crout = parse_port(crout)
-    return new_csin, new_csout, new_crin, new_crout
+    try:
+        c_s_in, c_s_out, c_r_in, c_r_out, s_in, r_in = map(parse_port, argv[1:7])
+        p_rate = float(argv[7])
+    except (IndexError, ValueError):
+        return ('Usage: {} C_S_IN C_S_OUT C_R_IN C_R_OUT S_IN R_IN P_RATE'
+                .format(argv[0]))
+    sender_in = socket.socket(type=socket.SOCK_DGRAM)
+    sender_in.bind(('localhost', c_s_in))
+    sender_out = socket.socket(type=socket.SOCK_DGRAM)
+    sender_out.bind(('localhost', c_s_out))
+    receiver_in = socket.socket(type=socket.SOCK_DGRAM)
+    receiver_in.bind(('localhost', c_r_in))
+    receiver_out = socket.socket(type=socket.SOCK_DGRAM)
+    receiver_out.bind(('localhost', c_r_out))
+    sender_out.connect(('localhost', s_in))
+    receiver_out.connect(('localhost', r_in))
+    loop(sender_in, sender_out, receiver_in, receiver_out, p_rate)
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    sys.exit(main(sys.argv))
