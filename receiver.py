@@ -10,7 +10,7 @@ from common import Packet, PacketType, parse_port
 def loop(file_out, sock_in, sock_out):
     expected = 0
     while True:
-        raw_rcvd = sock_in.recv(4096)
+        raw_rcvd = sock_in.recv(2**16)
         try:
             rcvd = Packet.from_bytes(raw_rcvd)
         except ValueError:
