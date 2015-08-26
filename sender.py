@@ -2,17 +2,23 @@
 
 from contextlib import closing
 import socket
+import os
 import sys
 import select
 
 from common import Packet, PacketType, parse_port
 
 
+# These values may be changed for testing purposes
+BLOCK_SIZE = int(os.environ.get('SENDER_BLOCK_SIZE', '512'))
+TIMEOUT = float(os.environ.get('SENDER_TIMEOUT', '1'))
+
+
 def loop(file_in, sock_in, sock_out):
     next_ = 0
     exit_flag = False
     while not exit_flag:
-        data = file_in.read(512)
+        data = file_in.read(BLOCK_SIZE)
         packet = Packet(PacketType.data, next_, data)
         exit_flag = not data
         processing = True
@@ -22,7 +28,7 @@ def loop(file_in, sock_in, sock_out):
             except ConnectionRefusedError:
                 print('sender: connection lost')
                 return
-            ready, _, _ = select.select([sock_in], [], [], 1)
+            ready, _, _ = select.select([sock_in], [], [], TIMEOUT)
             if not ready:
                 continue
             rcvd = sock_in.recv(2**16)
