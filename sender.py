@@ -10,18 +10,14 @@ from common import Packet, PacketType, parse_port
 
 def loop(file_in, sock_in, sock_out):
     next_ = 0
-    exitFlag = False
-    while not exitFlag:
+    exit_flag = False
+    while not exit_flag:
         data = file_in.read(512)
-        n = len(data)
-        if n == 0:
-            packetBuffer = Packet(PacketType.data, next_, b'')
-            exitFlag = True
-        else:
-            packetBuffer = Packet(PacketType.data, next_, data)
+        packet = Packet(PacketType.data, next_, data)
+        exit_flag = not data
         processing = True
         while processing:
-            sock_out.send(packetBuffer)
+            sock_out.send(packet.to_bytes())
             ready, _, _ = select.select([sock_in], [], [], 1)
             if not ready:
                 continue
@@ -48,16 +44,13 @@ def main(argv):
         file_name = argv[4]
     except (IndexError, ValueError):
         return 'Usage: {} S_IN S_OUT C_S_IN FILE_NAME'.format(sys.argv[0])
-    try:
-        with open(file_name, 'rb') as file_in, \
-                closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_in, \
-                closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_out:
-            sock_in.bind(('localhost', s_in))
-            sock_out.bind(('localhost', s_out))
-            sock_out.connect(('localhost', c_s_in))
-            loop(file_in, sock_in, sock_out)
-    except IOError as e:
-        return str(e)
+    with open(file_name, 'rb') as file_in, \
+            closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_in, \
+            closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_out:
+        sock_in.bind(('localhost', s_in))
+        sock_out.bind(('localhost', s_out))
+        sock_out.connect(('localhost', c_s_in))
+        loop(file_in, sock_in, sock_out)
 
 
 if __name__ == '__main__':

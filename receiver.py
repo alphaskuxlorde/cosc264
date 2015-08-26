@@ -12,7 +12,7 @@ def loop(file_out, sock_in, sock_out):
     while True:
         raw_rcvd = sock_in.recv(4096)
         try:
-            rcvd = Packet.from_bytes(raw_packet)
+            rcvd = Packet.from_bytes(raw_rcvd)
         except ValueError:
             continue
         if rcvd.type_ != PacketType.data:
@@ -38,16 +38,13 @@ def main(argv):
         file_name = argv[4]
     except (IndexError, ValueError):
         return 'Usage: {} R_IN R_OUT C_R_IN FILE_NAME'.format(sys.argv[0])
-    try:
-        with open(file_name, 'xb') as file_out, \
-                closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_in, \
-                closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_out:
-            sock_in.bind(('localhost', r_in))
-            sock_out.bind(('localhost', r_out))
-            sock_out.connect(('localhost', c_r_in))
-            loop(file_out, sock_in, sock_out)
-    except IOError as e:
-        return str(e)
+    with open(file_name, 'xb') as file_out, \
+            closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_in, \
+            closing(socket.socket(type=socket.SOCK_DGRAM)) as sock_out:
+        sock_in.bind(('localhost', r_in))
+        sock_out.bind(('localhost', r_out))
+        sock_out.connect(('localhost', c_r_in))
+        loop(file_out, sock_in, sock_out)
 
 
 if __name__ == '__main__':

@@ -10,28 +10,28 @@ from common import Packet, parse_port
 
 
 CSIN, CSOUT, CRIN, CROUT = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
-SIN = sys.argv[5]
-RIN = sys.argv[6]
+SIN = int(sys.argv[5])
+RIN = int(sys.argv[6])
 P_RATE = float(sys.argv[7])
 
 
 def main(argv):
     csin_n, csout_n, crin_n, crout_n = all_ports(CSIN, CSOUT, CRIN, CROUT)
     sin, rin = SIN, RIN
-    if len(set(csin_n, csout_n, crin_n, crout_n, sin, rin)) != 6:
+    if len({csin_n, csout_n, crin_n, crout_n, sin, rin}) != 6:
         raise ValueError("Port numbers must all be distinct")
     # This could be moved out of main(), checking the argvs instead.
     p = P_RATE
     csin = socket.socket(type=socket.SOCK_DGRAM)
-    csin.bind(("", csin_n))
+    csin.bind(('localhost', csin_n))
     csout = socket.socket(type=socket.SOCK_DGRAM)
-    csout.bind(("", csout_n))
+    csout.bind(('localhost', csout_n))
     crin = socket.socket(type=socket.SOCK_DGRAM)
-    crin.bind(("", crin_n))
+    crin.bind(('localhost', crin_n))
     crout = socket.socket(type=socket.SOCK_DGRAM)
-    crout.bind(("", crout_n))
-    csout.connect(("", sin))
-    crout.connect(("", rin))
+    crout.bind(('localhost', crout_n))
+    csout.connect(('localhost', sin))
+    crout.connect(('localhost', rin))
     while True:
         ready, _, _ = select.select([csin, crin], [], [])
         for nodule in ready:
@@ -59,7 +59,7 @@ def main(argv):
 
 
 def all_ports(csin, csout, crin, crout):
-    new_csin = parse_port(scin)
+    new_csin = parse_port(csin)
     new_csout = parse_port(csout)
     new_crin = parse_port(crin)
     new_crout = parse_port(crout)
