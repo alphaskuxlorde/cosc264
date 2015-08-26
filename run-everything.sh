@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 C_S_IN=10000
 C_S_OUT=10001
 C_R_IN=10002
@@ -20,7 +22,11 @@ else
 fi
 
 # Terminate channel/receiver automatically on exit
-trap '( kill $channel_pid; kill $receiver_pid ) >/dev/null 2>&1' 0
+cleanup () {
+    kill $channel_pid || true
+    kill $receiver_pid || true
+}
+trap 'cleanup >/dev/null 2>&1' 0
 
 ./channel.py $C_S_IN $C_S_OUT $C_R_IN $C_R_OUT $S_IN $R_IN $P_RATE &
 channel_pid=$!

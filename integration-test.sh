@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 input='README.md'
 output='README.md.out'
 
