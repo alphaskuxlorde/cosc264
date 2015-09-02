@@ -52,6 +52,10 @@ def main(argv):
     sender_out.connect(('localhost', s_in))
     receiver_out.connect(('localhost', r_in))
     loop(sender_in, sender_out, receiver_in, receiver_out, p_rate)
+    sender_in.close()
+    sender_out.close()
+    receiver_in.close()
+    receiver_out.close()
 
 
 if __name__ == "__main__":
